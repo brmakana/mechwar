@@ -8,10 +8,7 @@ import io.makana.mechwar.engine.Dice;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,8 +22,8 @@ public class InitiativePhase {
 
     public InitiativePhaseResult rollInitiative(GameId gameId) {
         log.info("Rolling for initiative");
-        int max_roll_count = 10;
         int roll_count = 0;
+        int max_roll_count = 10;
         InitiativePhaseResult initiativePhaseResult = null;
         while (!isValid(initiativePhaseResult) && (roll_count < max_roll_count)) {
             initiativePhaseResult = rollForPlayers(gameId);
@@ -36,8 +33,7 @@ public class InitiativePhase {
             }
         }
         if (!isValid(initiativePhaseResult) && (roll_count >= max_roll_count)) {
-            log.error("Re-rolled ties 10 times but still could not get a difference, aborting!");
-            throw new RuntimeException("The universe has ended");
+            throw new IllegalStateException("Unable to break ties after 10 tries");
         }
         return initiativePhaseResult;
     }
@@ -47,32 +43,41 @@ public class InitiativePhase {
             return false;
         }
         Set<Integer> rollResults = initiativePhaseResult.getInitiativeResults().values().stream().collect(Collectors.toSet());
-        return (rollResults.size() >= 2);
+        return (rollResults.size() >= 2 && rollResults.size() == initiativePhaseResult.getInitiativeResults().size());
     }
 
     private InitiativePhaseResult rollForPlayers(GameId gameId) {
-        Map<Player, Integer> diceResult = new HashMap<>();
-        Player initiativeWinner = null;
-        int winningRoll = -1;
-        for (Player player : getPlayers(gameId)) {
+        Map<Player, Integer> diceResultMap = new HashMap<>();
+        List<Player> players = getPlayers(gameId);
+        if (players == null || players.isEmpty() || players.size() != 2) {
+            throw new IllegalStateException("Players list was not size 2");
+        }
+        for (Player player : players) {
             int diceRoll = dice.roll2D6();
-            diceResult.put(player, diceRoll);
-            if (initiativeWinner == null) {
-                initiativeWinner = player;
-                winningRoll = diceRoll;
-            } else {
-                if (diceRoll > winningRoll) {
-                    initiativeWinner = player;
-                    winningRoll = diceRoll;
-                }
-            }
+            diceResultMap.put(player, diceRoll);
         }
 
-        InitiativePhaseResult result = new InitiativePhaseResult(diceResult, initiativeWinner);
+        InitiativePhaseResult result = new InitiativePhaseResult(diceResultMap);
         return result;
-    }
+}
 
     private List<Player> getPlayers(GameId gameId) {
         return playerRepository.getPlayers(gameId);
+    }
+
+    public Dice getDice() {
+        return dice;
+    }
+
+    public void setDice(Dice dice) {
+        this.dice = dice;
+    }
+
+    public PlayerRepository getPlayerRepository() {
+        return playerRepository;
+    }
+
+    public void setPlayerRepository(PlayerRepository playerRepository) {
+        this.playerRepository = playerRepository;
     }
 }

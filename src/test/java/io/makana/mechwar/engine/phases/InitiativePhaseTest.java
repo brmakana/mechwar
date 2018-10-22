@@ -46,10 +46,11 @@ public class InitiativePhaseTest {
         Map<Player, Integer> expectedRoll = new HashMap<>();
         expectedRoll.put(player1, 1);
         expectedRoll.put(player2, 2);
-        InitiativePhaseResult expected = new InitiativePhaseResult(expectedRoll, player2);
 
         InitiativePhaseResult actual = initiativePhase.rollInitiative(new GameId());
-        assertEquals(expected, actual);
+        assertEquals(expectedRoll, actual.getInitiativeResults());
+        assertEquals(player1, actual.getLoser());
+        assertEquals(player2, actual.getWinner());
     }
 
     @Test
@@ -63,10 +64,11 @@ public class InitiativePhaseTest {
         Map<Player, Integer> expectedRoll = new HashMap<>();
         expectedRoll.put(player1, 3);
         expectedRoll.put(player2, 4);
-        InitiativePhaseResult expected = new InitiativePhaseResult(expectedRoll, player2);
 
         InitiativePhaseResult actual = initiativePhase.rollInitiative(new GameId());
-        assertEquals(expected, actual);
+        assertEquals(expectedRoll, actual.getInitiativeResults());
+        assertEquals(player1, actual.getLoser());
+        assertEquals(player2, actual.getWinner());
     }
 
 
