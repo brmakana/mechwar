@@ -1,9 +1,8 @@
-package io.makana.mechwar.engine;
+package io.makana.mechwar.domain.game;
 
 import io.makana.mechwar.domain.events.InitiativePhaseResult;
-import io.makana.mechwar.domain.game.GameId;
 import io.makana.mechwar.domain.player.PlayerRepository;
-import io.makana.mechwar.engine.phases.InitiativePhase;
+import io.makana.mechwar.domain.game.phases.InitiativePhase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class GameController {

@@ -1,11 +1,13 @@
-package io.makana.mechwar.domain.events;
+package io.makana.mechwar.domain.events.movement;
 
-import io.makana.mechwar.domain.events.movement.GroundMovementType;
 import io.makana.mechwar.domain.game.GameId;
 import io.makana.mechwar.domain.player.Player;
 import io.makana.mechwar.domain.units.GameUnitId;
 import lombok.Builder;
+import lombok.Singular;
 import lombok.Value;
+
+import java.util.List;
 
 @Value
 @Builder
@@ -14,5 +16,6 @@ public class MoveOrderRequest {
     private Player player;
     private int round;
     private GameUnitId unitToMove;
-    private GroundMovementType movementType;
+    @Singular("addMovePath")
+    private List<MovePath> movePath;
 }

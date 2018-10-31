@@ -1,4 +1,4 @@
-package io.makana.mechwar.engine;
+package io.makana.mechwar.domain.game;
 
 public interface Dice {
 

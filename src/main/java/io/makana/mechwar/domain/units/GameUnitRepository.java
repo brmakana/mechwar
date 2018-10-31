@@ -8,4 +8,6 @@ import java.util.List;
 public interface GameUnitRepository {
 
     List<GameUnitId> getUnitIdsForPlayer(GameId gameId, Player player);
+
+    GameUnit getGameUnitById(GameUnitId unitToMove);
 }

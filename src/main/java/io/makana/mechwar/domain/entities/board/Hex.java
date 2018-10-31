@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,6 +20,12 @@ public class Hex {
     private int id;
     private int elevation;
 
-    @Singular("terrain")
+    public Hex(int id, int elevation, List<Terrain> terrain) {
+        this.id = id;
+        this.elevation = elevation;
+        this.terrain = terrain;
+    }
+
+    @Singular("addTerrain")
     private List<Terrain> terrain;
 }

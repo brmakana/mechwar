@@ -1,4 +1,4 @@
-package io.makana.mechwar.engine;
+package io.makana.mechwar.domain.game;
 
 import io.makana.mechwar.domain.events.GameEvent;
 import io.makana.mechwar.domain.game.GameId;

@@ -1,11 +1,11 @@
-package io.makana.mechwar.engine.phases;
+package io.makana.mechwar.domain.game.phases;
 
 import io.makana.mechwar.domain.events.InitiativePhaseResult;
 import io.makana.mechwar.domain.game.GameId;
 import io.makana.mechwar.domain.player.Player;
 import io.makana.mechwar.domain.player.PlayerRepository;
 import io.makana.mechwar.domain.player.Players;
-import io.makana.mechwar.engine.Dice;
+import io.makana.mechwar.domain.game.Dice;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 

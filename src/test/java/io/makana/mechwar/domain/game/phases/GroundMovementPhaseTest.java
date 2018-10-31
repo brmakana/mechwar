@@ -1,8 +1,10 @@
-package io.makana.mechwar.engine.phases;
+package io.makana.mechwar.domain.game.phases;
 
 import io.makana.mechwar.domain.calculators.UnitRatioPerPlayerCalculator;
-import io.makana.mechwar.domain.events.MoveOrderRequest;
-import io.makana.mechwar.domain.events.movement.GroundMovementType;
+import io.makana.mechwar.domain.entities.board.Hex;
+import io.makana.mechwar.domain.entities.board.terrain.Clear;
+import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
+import io.makana.mechwar.domain.events.movement.MovePath;
 import io.makana.mechwar.domain.game.GameId;
 import io.makana.mechwar.domain.player.Player;
 import io.makana.mechwar.domain.player.PlayerClient;
@@ -10,19 +12,19 @@ import io.makana.mechwar.domain.player.PlayerRepository;
 import io.makana.mechwar.domain.player.Players;
 import io.makana.mechwar.domain.units.GameUnitId;
 import io.makana.mechwar.domain.units.GameUnitRepository;
+import io.makana.mechwar.domain.units.capabilities.movement.MovementCapability;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
@@ -63,12 +65,13 @@ public class GroundMovementPhaseTest {
     }
 
     private MoveOrderRequest getMoveOrderRequest(Player player, int round) {
+        MovePath movePath = new MovePath(mock(MovementCapability.class), new Hex(0101, 1, Arrays.asList(new Clear())));
         MoveOrderRequest request = MoveOrderRequest.builder()
                 .gameId(new GameId())
-                .movementType(mock(GroundMovementType.class))
                 .player(player)
                 .round(round)
                 .unitToMove(new GameUnitId())
+                .addMovePath(movePath)
                 .build();
         return request;
     }

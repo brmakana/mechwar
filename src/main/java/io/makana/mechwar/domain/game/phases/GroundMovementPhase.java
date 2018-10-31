@@ -1,7 +1,7 @@
-package io.makana.mechwar.engine.phases;
+package io.makana.mechwar.domain.game.phases;
 
 import io.makana.mechwar.domain.calculators.UnitRatioPerPlayerCalculator;
-import io.makana.mechwar.domain.events.MoveOrderRequest;
+import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
 import io.makana.mechwar.domain.game.GameId;
 import io.makana.mechwar.domain.player.Player;
 import io.makana.mechwar.domain.player.PlayerClient;
@@ -54,8 +54,9 @@ public class GroundMovementPhase {
                         round,
                         new HashSet<>(),
                         unitRatioByPlayer.get(player));
-                log.info("Move request: {}", moveOrderRequest);
+                log.info("Player's move request: {}", moveOrderRequest);
                 // validate request
+
             }
             moveOrdersComplete = true;
         }

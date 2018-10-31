@@ -1,6 +1,6 @@
 package io.makana.mechwar.domain.player;
 
-import io.makana.mechwar.domain.events.MoveOrderRequest;
+import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
 import io.makana.mechwar.domain.game.GameId;
 import io.makana.mechwar.domain.units.GameUnitId;
 

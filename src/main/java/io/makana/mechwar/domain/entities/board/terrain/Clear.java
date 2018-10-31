@@ -2,7 +2,7 @@ package io.makana.mechwar.domain.entities.board.terrain;
 
 public class Clear extends Terrain {
 
-    public Clear(String name) {
+    public Clear() {
         super("Clear");
     }
 
