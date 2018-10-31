@@ -1,4 +1,11 @@
-package io.makana.mechwar.domain.gameobjects;
+package io.makana.mechwar.domain.units;
 
-public class GameUnitRepository {
+import io.makana.mechwar.domain.game.GameId;
+import io.makana.mechwar.domain.player.Player;
+
+import java.util.List;
+
+public interface GameUnitRepository {
+
+    List<GameUnitId> getUnitIdsForPlayer(GameId gameId, Player player);
 }

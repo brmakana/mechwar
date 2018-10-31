@@ -1,4 +1,4 @@
-package io.makana.mechwar.domain.entities.board;
+package io.makana.mechwar.domain.entities.board.terrain;
 
 import java.util.Optional;
 
@@ -11,6 +11,7 @@ public abstract class Terrain {
 
     public abstract int getObstructionLevelModifier();
     public abstract int getHeatModifier();
+    public abstract int movementCost();
 
     public Optional<Integer> constructionFactor() {
         return Optional.empty();

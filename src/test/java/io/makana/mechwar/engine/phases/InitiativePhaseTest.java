@@ -4,6 +4,7 @@ import io.makana.mechwar.domain.events.InitiativePhaseResult;
 import io.makana.mechwar.domain.game.GameId;
 import io.makana.mechwar.domain.player.Player;
 import io.makana.mechwar.domain.player.PlayerRepository;
+import io.makana.mechwar.domain.player.Players;
 import io.makana.mechwar.engine.Dice;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +41,7 @@ public class InitiativePhaseTest {
         Player player1 = new Player("player1");
         Player player2 = new Player("player2");
 
-        when(playerRepository.getPlayers(any(GameId.class))).thenReturn(Arrays.asList(player1, player2));
+        when(playerRepository.getPlayers(any(GameId.class))).thenReturn(new Players(new GameId(), player1, player2));
         when(dice.roll2D6()).thenReturn(1).thenReturn(2);
 
         Map<Player, Integer> expectedRoll = new HashMap<>();
@@ -58,7 +59,7 @@ public class InitiativePhaseTest {
         Player player1 = new Player("player1");
         Player player2 = new Player("player2");
 
-        when(playerRepository.getPlayers(any(GameId.class))).thenReturn(Arrays.asList(player1, player2));
+        when(playerRepository.getPlayers(any(GameId.class))).thenReturn(new Players(new GameId(), player1, player2));
         when(dice.roll2D6()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(3).thenReturn(4);
 
         Map<Player, Integer> expectedRoll = new HashMap<>();

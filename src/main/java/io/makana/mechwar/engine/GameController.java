@@ -21,9 +21,8 @@ public class GameController {
         // roll initiative
         InitiativePhaseResult initiativePhaseResult = initiativePhase.rollInitiative(gameId);
         gameEventRepository.saveEvent(gameId, round, initiativePhaseResult);
-        // movement
-
-        // ground attack
+        // ground movement
+        // air movement
         // air attack
         //
     }

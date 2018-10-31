@@ -4,6 +4,7 @@ import io.makana.mechwar.domain.events.InitiativePhaseResult;
 import io.makana.mechwar.domain.game.GameId;
 import io.makana.mechwar.domain.player.Player;
 import io.makana.mechwar.domain.player.PlayerRepository;
+import io.makana.mechwar.domain.player.Players;
 import io.makana.mechwar.engine.Dice;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class InitiativePhase {
 
     private InitiativePhaseResult rollForPlayers(GameId gameId) {
         Map<Player, Integer> diceResultMap = new HashMap<>();
-        List<Player> players = getPlayers(gameId);
+        List<Player> players = getPlayers(gameId).getPlayers();
         if (players == null || players.isEmpty() || players.size() != 2) {
             throw new IllegalStateException("Players list was not size 2");
         }
@@ -61,7 +62,7 @@ public class InitiativePhase {
         return result;
 }
 
-    private List<Player> getPlayers(GameId gameId) {
+    private Players getPlayers(GameId gameId) {
         return playerRepository.getPlayers(gameId);
     }
 
