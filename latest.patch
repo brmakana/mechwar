@@ -1,0 +1,756 @@
+diff --git a/notes.md b/notes.md
+new file mode 100644
+index 0000000..6283de8
+--- /dev/null
++++ b/notes.md
+@@ -0,0 +1,7 @@
++Domain notes
++---
++
++Entities & GameUnit
++-- 
++An Entity represents the model/template of a game object. For example, a mech will have an Entity modeling it. A Game Object is a concete example of an Entity. Using the previous example,
++a specific Jade Falcon Adder in a scenario would be represented by a GameUnit, with a relationship to the Entity for an Adder. 
+\ No newline at end of file
+diff --git a/src/main/java/io/makana/mechwar/domain/EightPointCompass.java b/src/main/java/io/makana/mechwar/domain/EightPointCompass.java
+new file mode 100644
+index 0000000..146f148
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/EightPointCompass.java
+@@ -0,0 +1,12 @@
++package io.makana.mechwar.domain;
++
++public enum EightPointCompass {
++    NORTH,
++    NORTHEAST,
++    EAST,
++    SOUTHEAST,
++    SOUTH,
++    SOUTHWEST,
++    WEST,
++    NORTHWEST
++}
+diff --git a/src/main/java/io/makana/mechwar/domain/FourPointCompass.java b/src/main/java/io/makana/mechwar/domain/FourPointCompass.java
+new file mode 100644
+index 0000000..8210346
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/FourPointCompass.java
+@@ -0,0 +1,8 @@
++package io.makana.mechwar.domain;
++
++public enum FourPointCompass {
++    NORTH,
++    EAST,
++    SOUTH,
++    WEST
++}
+diff --git a/src/main/java/io/makana/mechwar/domain/entities/Entity.java b/src/main/java/io/makana/mechwar/domain/entities/Entity.java
+new file mode 100644
+index 0000000..c5c4fbb
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/entities/Entity.java
+@@ -0,0 +1,28 @@
++package io.makana.mechwar.domain.entities;
++
++import io.makana.mechwar.domain.units.capabilities.movement.MovementCapability;
++import lombok.NonNull;
++import lombok.Singular;
++import lombok.Value;
++
++import java.util.Set;
++
++@Value
++public class Entity {
++    private EntityId entityId;
++
++    @Singular
++    private Set<MovementCapability> movementCapabilities;
++
++    public boolean hasMovementCapability(@NonNull MovementCapability toCheck) {
++        if (this.movementCapabilities == null || movementCapabilities.isEmpty()) {
++            return false;
++        }
++        for (MovementCapability capability : movementCapabilities) {
++            if (capability.getClass().equals(toCheck.getClass())) {
++                return true;
++            }
++        }
++        return false;
++    }
++}
+diff --git a/src/main/java/io/makana/mechwar/domain/entities/EntityId.java b/src/main/java/io/makana/mechwar/domain/entities/EntityId.java
+new file mode 100644
+index 0000000..3ab13c2
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/entities/EntityId.java
+@@ -0,0 +1,14 @@
++package io.makana.mechwar.domain.entities;
++
++import lombok.Value;
++
++import java.util.UUID;
++
++@Value
++public class EntityId {
++    private UUID uuid;
++
++    public EntityId() {
++        this.uuid = UUID.randomUUID();
++    }
++}
+diff --git a/src/main/java/io/makana/mechwar/domain/entities/EntityRepository.java b/src/main/java/io/makana/mechwar/domain/entities/EntityRepository.java
+new file mode 100644
+index 0000000..45e9bd6
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/entities/EntityRepository.java
+@@ -0,0 +1,6 @@
++package io.makana.mechwar.domain.entities;
++
++public interface EntityRepository {
++
++    Entity getById(EntityId entityId);
++}
+diff --git a/src/main/java/io/makana/mechwar/domain/entities/board/GameBoard.java b/src/main/java/io/makana/mechwar/domain/entities/board/GameBoard.java
+index 78e4ed1..b828c8f 100644
+--- a/src/main/java/io/makana/mechwar/domain/entities/board/GameBoard.java
++++ b/src/main/java/io/makana/mechwar/domain/entities/board/GameBoard.java
+@@ -1,5 +1,6 @@
+ package io.makana.mechwar.domain.entities.board;
+ 
++import io.makana.mechwar.domain.FourPointCompass;
+ import lombok.Builder;
+ import lombok.Singular;
+ import lombok.Value;
+@@ -14,7 +15,11 @@ import java.util.Map;
+ @Builder
+ public class GameBoard {
+     private Map<Integer, Hex> hexesById;
+-    private GameBoardDirection facing;
++    /**
++     * Models the direction a <code>{@link GameBoard}</code>'s "up" is oriented towards. If a <code>{@link GameBoard}</code>
++     * were facing "naturally", ie with the top row actually on the top, the <code>{@link FourPointCompass}</code> would be <code>NORTH</code>.
++     */
++    private FourPointCompass facing;
+     @Singular
+-    private Map<GameBoardDirection, GameBoard> neighbors;
++    private Map<FourPointCompass, GameBoard> neighbors;
+ }
+diff --git a/src/main/java/io/makana/mechwar/domain/entities/board/GameBoardDirection.java b/src/main/java/io/makana/mechwar/domain/entities/board/GameBoardDirection.java
+deleted file mode 100644
+index 94a644a..0000000
+--- a/src/main/java/io/makana/mechwar/domain/entities/board/GameBoardDirection.java
++++ /dev/null
+@@ -1,12 +0,0 @@
+-package io.makana.mechwar.domain.entities.board;
+-
+-/**
+- * Models the direction a <code>{@link GameBoard}</code>'s "up" is oriented towards. If a <code>{@link GameBoard}</code>
+- * were facing "naturally", ie with the top row actually on the top, the <code>{@link GameBoardDirection}</code> would be <code>NORTH</code>.
+- */
+-public enum GameBoardDirection {
+-    NORTH,
+-    SOUTH,
+-    EAST,
+-    WEST
+-}
+diff --git a/src/main/java/io/makana/mechwar/domain/entities/board/Hex.java b/src/main/java/io/makana/mechwar/domain/entities/board/Hex.java
+index 7a67c52..f17bf26 100644
+--- a/src/main/java/io/makana/mechwar/domain/entities/board/Hex.java
++++ b/src/main/java/io/makana/mechwar/domain/entities/board/Hex.java
+@@ -5,6 +5,7 @@ import lombok.Builder;
+ import lombok.Singular;
+ import lombok.Value;
+ 
++import java.util.ArrayList;
+ import java.util.List;
+ 
+ /**
+@@ -19,6 +20,12 @@ public class Hex {
+     private int id;
+     private int elevation;
+ 
+-    @Singular("terrain")
++    public Hex(int id, int elevation, List<Terrain> terrain) {
++        this.id = id;
++        this.elevation = elevation;
++        this.terrain = terrain;
++    }
++
++    @Singular("addTerrain")
+     private List<Terrain> terrain;
+ }
+diff --git a/src/main/java/io/makana/mechwar/domain/entities/board/terrain/Clear.java b/src/main/java/io/makana/mechwar/domain/entities/board/terrain/Clear.java
+index 2c05bb4..30e013e 100644
+--- a/src/main/java/io/makana/mechwar/domain/entities/board/terrain/Clear.java
++++ b/src/main/java/io/makana/mechwar/domain/entities/board/terrain/Clear.java
+@@ -2,7 +2,7 @@ package io.makana.mechwar.domain.entities.board.terrain;
+ 
+ public class Clear extends Terrain {
+ 
+-    public Clear(String name) {
++    public Clear() {
+         super("Clear");
+     }
+ 
+diff --git a/src/main/java/io/makana/mechwar/domain/events/movement/GroundMovementType.java b/src/main/java/io/makana/mechwar/domain/events/movement/GroundMovementType.java
+deleted file mode 100644
+index b9d4148..0000000
+--- a/src/main/java/io/makana/mechwar/domain/events/movement/GroundMovementType.java
++++ /dev/null
+@@ -1,9 +0,0 @@
+-package io.makana.mechwar.domain.events.movement;
+-
+-public abstract class GroundMovementType {
+-
+-    public abstract int getHeatModifier();
+-    public abstract int getToHitModifier();
+-    public abstract int getToBeHitModifier();
+-    public abstract boolean requirePilotingSkillRoll();
+-}
+diff --git a/src/main/java/io/makana/mechwar/domain/events/MoveOrderRequest.java b/src/main/java/io/makana/mechwar/domain/events/movement/MoveOrderRequest.java
+similarity index 68%
+rename from src/main/java/io/makana/mechwar/domain/events/MoveOrderRequest.java
+rename to src/main/java/io/makana/mechwar/domain/events/movement/MoveOrderRequest.java
+index 7048fef..edbc9c1 100644
+--- a/src/main/java/io/makana/mechwar/domain/events/MoveOrderRequest.java
++++ b/src/main/java/io/makana/mechwar/domain/events/movement/MoveOrderRequest.java
+@@ -1,12 +1,14 @@
+-package io.makana.mechwar.domain.events;
++package io.makana.mechwar.domain.events.movement;
+ 
+-import io.makana.mechwar.domain.events.movement.GroundMovementType;
+ import io.makana.mechwar.domain.game.GameId;
+ import io.makana.mechwar.domain.player.Player;
+ import io.makana.mechwar.domain.units.GameUnitId;
+ import lombok.Builder;
++import lombok.Singular;
+ import lombok.Value;
+ 
++import java.util.List;
++
+ @Value
+ @Builder
+ public class MoveOrderRequest {
+@@ -14,5 +16,6 @@ public class MoveOrderRequest {
+     private Player player;
+     private int round;
+     private GameUnitId unitToMove;
+-    private GroundMovementType movementType;
++    @Singular("addMovePath")
++    private List<MovePath> movePath;
+ }
+diff --git a/src/main/java/io/makana/mechwar/domain/events/movement/MovePath.java b/src/main/java/io/makana/mechwar/domain/events/movement/MovePath.java
+new file mode 100644
+index 0000000..b2752b1
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/events/movement/MovePath.java
+@@ -0,0 +1,11 @@
++package io.makana.mechwar.domain.events.movement;
++
++import io.makana.mechwar.domain.entities.board.Hex;
++import io.makana.mechwar.domain.units.capabilities.movement.MovementCapability;
++import lombok.Value;
++
++@Value
++public class MovePath {
++    private MovementCapability movementType;
++    private Hex targetHex;
++}
+diff --git a/src/main/java/io/makana/mechwar/domain/events/movement/validation/MoveOrderRequestValidator.java b/src/main/java/io/makana/mechwar/domain/events/movement/validation/MoveOrderRequestValidator.java
+new file mode 100644
+index 0000000..b6d1d03
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/events/movement/validation/MoveOrderRequestValidator.java
+@@ -0,0 +1,85 @@
++package io.makana.mechwar.domain.events.movement.validation;
++
++import io.makana.mechwar.domain.entities.Entity;
++import io.makana.mechwar.domain.entities.EntityId;
++import io.makana.mechwar.domain.entities.EntityRepository;
++import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
++import io.makana.mechwar.domain.events.movement.MovePath;
++import io.makana.mechwar.domain.units.GameUnit;
++import io.makana.mechwar.domain.units.GameUnitId;
++import io.makana.mechwar.domain.units.GameUnitRepository;
++import lombok.AllArgsConstructor;
++import lombok.NonNull;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.stereotype.Component;
++import org.springframework.validation.Errors;
++import org.springframework.validation.Validator;
++
++/**
++ * Validates a <code>{@link MoveOrderRequest}</code>
++ */
++@Component
++@AllArgsConstructor
++public class MoveOrderRequestValidator implements Validator {
++
++    @Autowired
++    @NonNull
++    private GameUnitRepository gameUnitRepository;
++
++    @Autowired
++    @NonNull
++    private EntityRepository entityRepository;
++
++    @Override
++    public boolean supports(Class<?> clazz) {
++        return MoveOrderRequest.class.equals(clazz);
++    }
++
++    @Override
++    public void validate(Object target, Errors errors) {
++        if (target == null || errors == null) {
++            throw new IllegalArgumentException("Null arguments not allowed");
++        }
++        MoveOrderRequest request = (MoveOrderRequest) target;
++        if (request.getGameId() == null) {
++            errors.rejectValue("gameId", "invalidGameId", "GameId cannot be null!");
++        }
++        if (request.getPlayer() == null) {
++            errors.rejectValue("player", "invalidPlayer", "Player cannot be null!");
++        }
++        if (request.getRound() <= 0) {
++            errors.rejectValue("round", "invalidRound", "Round must be greater than zero");
++        }
++        if (request.getUnitToMove() == null) {
++            errors.rejectValue("unitToMove", "invalidUnitToMove", "UnitToMove cannot be null!");
++        }
++        if (request.getMovePath() == null || request.getMovePath().isEmpty()) {
++            errors.rejectValue("movePath", "invalidMovePath", "movePath cannot be null or empty!");
++        }
++        GameUnitId unitToMove = request.getUnitToMove();
++        GameUnit targetUnit = gameUnitRepository.getGameUnitById(unitToMove);
++        if (targetUnit == null) {
++            errors.rejectValue("unitToMove", "unitDoesNotExist", "Unit [" + unitToMove + "] did not exist!");
++        } else {
++            EntityId targetUnitEntityId = targetUnit.getEntityId();
++            if (targetUnitEntityId == null) {
++                errors.rejectValue("unitToMove", "entityDoesNotExist", "Unit [" + unitToMove + "] had no entityId!");
++            }
++            Entity entity = entityRepository.getById(targetUnitEntityId);
++            if (entity == null) {
++                errors.rejectValue("unitToMove", "entityDoesNotExist", "Entity [" + targetUnitEntityId + "] does not exist!");
++            }
++            if (entity.getMovementCapabilities() == null || entity.getMovementCapabilities().isEmpty()) {
++                errors.rejectValue("unitToMove", "entityDoesNotExist", "Entity [" + targetUnitEntityId + "] had no movement capabilities!");
++            }
++            /** @TODO this should move to a MovePathValidator **/
++            for (MovePath movePath : ((MoveOrderRequest) target).getMovePath()) {
++                if (!entity.hasMovementCapability(movePath.getMovementType())) {
++                    errors.rejectValue("movePath",
++                            "invalidMovementType",
++                            "Entity [" + targetUnitEntityId + "] did not have movement capability [" + movePath.getMovementType() +"]");
++                }
++            }
++        }
++    }
++}
+diff --git a/src/main/java/io/makana/mechwar/engine/Dice.java b/src/main/java/io/makana/mechwar/domain/game/Dice.java
+similarity index 63%
+rename from src/main/java/io/makana/mechwar/engine/Dice.java
+rename to src/main/java/io/makana/mechwar/domain/game/Dice.java
+index 1edd052..d709c4a 100644
+--- a/src/main/java/io/makana/mechwar/engine/Dice.java
++++ b/src/main/java/io/makana/mechwar/domain/game/Dice.java
+@@ -1,4 +1,4 @@
+-package io.makana.mechwar.engine;
++package io.makana.mechwar.domain.game;
+ 
+ public interface Dice {
+ 
+diff --git a/src/main/java/io/makana/mechwar/engine/GameController.java b/src/main/java/io/makana/mechwar/domain/game/GameController.java
+similarity index 84%
+rename from src/main/java/io/makana/mechwar/engine/GameController.java
+rename to src/main/java/io/makana/mechwar/domain/game/GameController.java
+index 7136828..32131c1 100644
+--- a/src/main/java/io/makana/mechwar/engine/GameController.java
++++ b/src/main/java/io/makana/mechwar/domain/game/GameController.java
+@@ -1,9 +1,8 @@
+-package io.makana.mechwar.engine;
++package io.makana.mechwar.domain.game;
+ 
+ import io.makana.mechwar.domain.events.InitiativePhaseResult;
+-import io.makana.mechwar.domain.game.GameId;
+ import io.makana.mechwar.domain.player.PlayerRepository;
+-import io.makana.mechwar.engine.phases.InitiativePhase;
++import io.makana.mechwar.domain.game.phases.InitiativePhase;
+ import org.springframework.beans.factory.annotation.Autowired;
+ 
+ public class GameController {
+diff --git a/src/main/java/io/makana/mechwar/engine/GameEventRepository.java b/src/main/java/io/makana/mechwar/domain/game/GameEventRepository.java
+similarity index 96%
+rename from src/main/java/io/makana/mechwar/engine/GameEventRepository.java
+rename to src/main/java/io/makana/mechwar/domain/game/GameEventRepository.java
+index 7f7b6f4..cfb0556 100644
+--- a/src/main/java/io/makana/mechwar/engine/GameEventRepository.java
++++ b/src/main/java/io/makana/mechwar/domain/game/GameEventRepository.java
+@@ -1,4 +1,4 @@
+-package io.makana.mechwar.engine;
++package io.makana.mechwar.domain.game;
+ 
+ import io.makana.mechwar.domain.events.GameEvent;
+ import io.makana.mechwar.domain.game.GameId;
+diff --git a/src/main/java/io/makana/mechwar/engine/phases/GroundMovementPhase.java b/src/main/java/io/makana/mechwar/domain/game/phases/GroundMovementPhase.java
+similarity index 93%
+rename from src/main/java/io/makana/mechwar/engine/phases/GroundMovementPhase.java
+rename to src/main/java/io/makana/mechwar/domain/game/phases/GroundMovementPhase.java
+index b382c28..e95e2b2 100644
+--- a/src/main/java/io/makana/mechwar/engine/phases/GroundMovementPhase.java
++++ b/src/main/java/io/makana/mechwar/domain/game/phases/GroundMovementPhase.java
+@@ -1,7 +1,7 @@
+-package io.makana.mechwar.engine.phases;
++package io.makana.mechwar.domain.game.phases;
+ 
+ import io.makana.mechwar.domain.calculators.UnitRatioPerPlayerCalculator;
+-import io.makana.mechwar.domain.events.MoveOrderRequest;
++import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
+ import io.makana.mechwar.domain.game.GameId;
+ import io.makana.mechwar.domain.player.Player;
+ import io.makana.mechwar.domain.player.PlayerClient;
+@@ -54,8 +54,9 @@ public class GroundMovementPhase {
+                         round,
+                         new HashSet<>(),
+                         unitRatioByPlayer.get(player));
+-                log.info("Move request: {}", moveOrderRequest);
++                log.info("Player's move request: {}", moveOrderRequest);
+                 // validate request
++
+             }
+             moveOrdersComplete = true;
+         }
+diff --git a/src/main/java/io/makana/mechwar/engine/phases/InitiativePhase.java b/src/main/java/io/makana/mechwar/domain/game/phases/InitiativePhase.java
+similarity index 96%
+rename from src/main/java/io/makana/mechwar/engine/phases/InitiativePhase.java
+rename to src/main/java/io/makana/mechwar/domain/game/phases/InitiativePhase.java
+index fa684f8..2f0a835 100644
+--- a/src/main/java/io/makana/mechwar/engine/phases/InitiativePhase.java
++++ b/src/main/java/io/makana/mechwar/domain/game/phases/InitiativePhase.java
+@@ -1,11 +1,11 @@
+-package io.makana.mechwar.engine.phases;
++package io.makana.mechwar.domain.game.phases;
+ 
+ import io.makana.mechwar.domain.events.InitiativePhaseResult;
+ import io.makana.mechwar.domain.game.GameId;
+ import io.makana.mechwar.domain.player.Player;
+ import io.makana.mechwar.domain.player.PlayerRepository;
+ import io.makana.mechwar.domain.player.Players;
+-import io.makana.mechwar.engine.Dice;
++import io.makana.mechwar.domain.game.Dice;
+ import lombok.extern.slf4j.Slf4j;
+ import org.springframework.beans.factory.annotation.Autowired;
+ 
+diff --git a/src/main/java/io/makana/mechwar/domain/player/PlayerClient.java b/src/main/java/io/makana/mechwar/domain/player/PlayerClient.java
+index 8ee586b..9b9610c 100644
+--- a/src/main/java/io/makana/mechwar/domain/player/PlayerClient.java
++++ b/src/main/java/io/makana/mechwar/domain/player/PlayerClient.java
+@@ -1,6 +1,6 @@
+ package io.makana.mechwar.domain.player;
+ 
+-import io.makana.mechwar.domain.events.MoveOrderRequest;
++import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
+ import io.makana.mechwar.domain.game.GameId;
+ import io.makana.mechwar.domain.units.GameUnitId;
+ 
+diff --git a/src/main/java/io/makana/mechwar/domain/units/GameUnit.java b/src/main/java/io/makana/mechwar/domain/units/GameUnit.java
+new file mode 100644
+index 0000000..a06d567
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/units/GameUnit.java
+@@ -0,0 +1,22 @@
++package io.makana.mechwar.domain.units;
++
++import io.makana.mechwar.domain.entities.EntityId;
++import lombok.AllArgsConstructor;
++import lombok.Builder;
++import lombok.Data;
++import lombok.NonNull;
++
++/**
++ * <code>{@link GameUnit}</code> models a single, concrete instance of a unit in the game.
++ */
++@Data
++@AllArgsConstructor
++@Builder
++public class GameUnit {
++
++    @NonNull
++    private GameUnitId gameUnitId;
++
++    @NonNull
++    private EntityId entityId;
++}
+diff --git a/src/main/java/io/makana/mechwar/domain/units/GameUnitRepository.java b/src/main/java/io/makana/mechwar/domain/units/GameUnitRepository.java
+index 5ead21e..86e965c 100644
+--- a/src/main/java/io/makana/mechwar/domain/units/GameUnitRepository.java
++++ b/src/main/java/io/makana/mechwar/domain/units/GameUnitRepository.java
+@@ -8,4 +8,6 @@ import java.util.List;
+ public interface GameUnitRepository {
+ 
+     List<GameUnitId> getUnitIdsForPlayer(GameId gameId, Player player);
++
++    GameUnit getGameUnitById(GameUnitId unitToMove);
+ }
+diff --git a/src/main/java/io/makana/mechwar/domain/units/capabilities/movement/MovementCapability.java b/src/main/java/io/makana/mechwar/domain/units/capabilities/movement/MovementCapability.java
+new file mode 100644
+index 0000000..2a91687
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/units/capabilities/movement/MovementCapability.java
+@@ -0,0 +1,10 @@
++package io.makana.mechwar.domain.units.capabilities.movement;
++
++import io.makana.mechwar.domain.entities.board.terrain.Terrain;
++
++public interface MovementCapability {
++    int getHeatModifier();
++    int getToHitModifier();
++    int getToBeHitModifier();
++    boolean requirePilotingSkillRoll(Terrain terrain);
++}
+diff --git a/src/main/java/io/makana/mechwar/domain/units/capabilities/movement/StandStill.java b/src/main/java/io/makana/mechwar/domain/units/capabilities/movement/StandStill.java
+new file mode 100644
+index 0000000..23a5c4e
+--- /dev/null
++++ b/src/main/java/io/makana/mechwar/domain/units/capabilities/movement/StandStill.java
+@@ -0,0 +1,25 @@
++package io.makana.mechwar.domain.units.capabilities.movement;
++
++import io.makana.mechwar.domain.entities.board.terrain.Terrain;
++
++public class StandStill implements MovementCapability {
++    @Override
++    public int getHeatModifier() {
++        return 0;
++    }
++
++    @Override
++    public int getToHitModifier() {
++        return 0;
++    }
++
++    @Override
++    public int getToBeHitModifier() {
++        return 0;
++    }
++
++    @Override
++    public boolean requirePilotingSkillRoll(Terrain terrain) {
++        return false;
++    }
++}
+diff --git a/src/test/java/io/makana/mechwar/domain/events/movement/validation/MoveOrderRequestValidatorTest.java b/src/test/java/io/makana/mechwar/domain/events/movement/validation/MoveOrderRequestValidatorTest.java
+new file mode 100644
+index 0000000..3bfced6
+--- /dev/null
++++ b/src/test/java/io/makana/mechwar/domain/events/movement/validation/MoveOrderRequestValidatorTest.java
+@@ -0,0 +1,101 @@
++package io.makana.mechwar.domain.events.movement.validation;
++
++import io.makana.mechwar.domain.entities.Entity;
++import io.makana.mechwar.domain.entities.EntityId;
++import io.makana.mechwar.domain.entities.EntityRepository;
++import io.makana.mechwar.domain.entities.board.Hex;
++import io.makana.mechwar.domain.entities.board.terrain.Clear;
++import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
++import io.makana.mechwar.domain.events.movement.MovePath;
++import io.makana.mechwar.domain.game.GameId;
++import io.makana.mechwar.domain.player.Player;
++import io.makana.mechwar.domain.units.GameUnit;
++import io.makana.mechwar.domain.units.GameUnitId;
++import io.makana.mechwar.domain.units.GameUnitRepository;
++import io.makana.mechwar.domain.units.capabilities.movement.MovementCapability;
++import io.makana.mechwar.domain.units.capabilities.movement.StandStill;
++import org.junit.Test;
++import org.junit.runner.RunWith;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.context.SpringBootTest;
++import org.springframework.boot.test.context.TestConfiguration;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.context.annotation.Bean;
++import org.springframework.test.context.junit4.SpringRunner;
++import org.springframework.validation.BeanPropertyBindingResult;
++import org.springframework.validation.ObjectError;
++
++import java.util.Arrays;
++import java.util.HashSet;
++import java.util.Set;
++
++import static org.junit.Assert.*;
++import static org.mockito.ArgumentMatchers.eq;
++import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.when;
++
++@RunWith(SpringRunner.class)
++public class MoveOrderRequestValidatorTest {
++
++    @MockBean
++    private GameUnitRepository gameUnitRepository;
++
++    @MockBean
++    private EntityRepository entityRepository;
++
++    @Autowired
++    private MoveOrderRequestValidator cut;
++
++    @Test
++    public void supports_correct_class() {
++        assertTrue(cut.supports(MoveOrderRequest.class));
++    }
++
++    @Test
++    public void valid_target_passes() {
++        GameUnitId gameUnitId = new GameUnitId();
++        EntityId entityId = new EntityId();
++        when(gameUnitRepository.getGameUnitById(eq(gameUnitId))).thenReturn(new GameUnit(gameUnitId, entityId));
++        Set<MovementCapability> movementCapabilities = new HashSet<>();
++        movementCapabilities.add(new StandStill());
++        when(entityRepository.getById(eq(entityId))).thenReturn(new Entity(entityId, movementCapabilities));
++        MoveOrderRequest validRequest = MoveOrderRequest.builder()
++                .gameId(new GameId())
++                .player(new Player("player 1"))
++                .round(1)
++                .unitToMove(gameUnitId)
++                .addMovePath(new MovePath(new StandStill(), new Hex(0101, 0, Arrays.asList(new Clear()))))
++                .build();
++        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(validRequest, "MoveOrderRequest");
++        cut.validate(validRequest, errors);
++        for (ObjectError error : errors.getAllErrors()) {
++            System.out.println(error.getDefaultMessage());
++        }
++        assertEquals(0, errors.getErrorCount());
++    }
++
++    @Test
++    public void missing_gameId_fails() {
++        MoveOrderRequest request = MoveOrderRequest.builder()
++                .player(new Player("player 1"))
++                .round(1)
++                .unitToMove(new GameUnitId())
++                .addMovePath(new MovePath(new StandStill(), new Hex(0101, 0, Arrays.asList(new Clear()))))
++                .build();
++        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(request, "MoveOrderRequest");
++        cut.validate(request, errors);
++        for (ObjectError error : errors.getAllErrors()) {
++            System.out.println(error.getDefaultMessage());
++        }
++        assertEquals(2, errors.getErrorCount());
++        assertEquals(1, errors.getFieldErrorCount("gameId"));
++    }
++
++    @TestConfiguration
++    public static class TestConfig {
++        @Bean
++        public MoveOrderRequestValidator moveOrderRequestValidator(GameUnitRepository gameUnitRepository, EntityRepository entityRepository) {
++            return new MoveOrderRequestValidator(gameUnitRepository, entityRepository);
++        }
++    }
++}
+\ No newline at end of file
+diff --git a/src/test/java/io/makana/mechwar/engine/phases/GroundMovementPhaseTest.java b/src/test/java/io/makana/mechwar/domain/game/phases/GroundMovementPhaseTest.java
+similarity index 83%
+rename from src/test/java/io/makana/mechwar/engine/phases/GroundMovementPhaseTest.java
+rename to src/test/java/io/makana/mechwar/domain/game/phases/GroundMovementPhaseTest.java
+index 5a09749..e71dc33 100644
+--- a/src/test/java/io/makana/mechwar/engine/phases/GroundMovementPhaseTest.java
++++ b/src/test/java/io/makana/mechwar/domain/game/phases/GroundMovementPhaseTest.java
+@@ -1,8 +1,10 @@
+-package io.makana.mechwar.engine.phases;
++package io.makana.mechwar.domain.game.phases;
+ 
+ import io.makana.mechwar.domain.calculators.UnitRatioPerPlayerCalculator;
+-import io.makana.mechwar.domain.events.MoveOrderRequest;
+-import io.makana.mechwar.domain.events.movement.GroundMovementType;
++import io.makana.mechwar.domain.entities.board.Hex;
++import io.makana.mechwar.domain.entities.board.terrain.Clear;
++import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
++import io.makana.mechwar.domain.events.movement.MovePath;
+ import io.makana.mechwar.domain.game.GameId;
+ import io.makana.mechwar.domain.player.Player;
+ import io.makana.mechwar.domain.player.PlayerClient;
+@@ -10,19 +12,19 @@ import io.makana.mechwar.domain.player.PlayerRepository;
+ import io.makana.mechwar.domain.player.Players;
+ import io.makana.mechwar.domain.units.GameUnitId;
+ import io.makana.mechwar.domain.units.GameUnitRepository;
++import io.makana.mechwar.domain.units.capabilities.movement.MovementCapability;
+ import org.junit.Test;
+ import org.junit.runner.RunWith;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.test.context.TestConfiguration;
+ import org.springframework.boot.test.mock.mockito.MockBean;
+ import org.springframework.context.annotation.Bean;
+-import org.springframework.context.annotation.Import;
+ import org.springframework.test.context.junit4.SpringRunner;
+ 
+ import java.util.ArrayList;
++import java.util.Arrays;
+ import java.util.HashMap;
+ import java.util.Map;
+-import java.util.Set;
+ 
+ import static org.mockito.ArgumentMatchers.*;
+ import static org.mockito.Mockito.mock;
+@@ -63,12 +65,13 @@ public class GroundMovementPhaseTest {
+     }
+ 
+     private MoveOrderRequest getMoveOrderRequest(Player player, int round) {
++        MovePath movePath = new MovePath(mock(MovementCapability.class), new Hex(0101, 1, Arrays.asList(new Clear())));
+         MoveOrderRequest request = MoveOrderRequest.builder()
+                 .gameId(new GameId())
+-                .movementType(mock(GroundMovementType.class))
+                 .player(player)
+                 .round(round)
+                 .unitToMove(new GameUnitId())
++                .addMovePath(movePath)
+                 .build();
+         return request;
+     }
+diff --git a/src/test/java/io/makana/mechwar/engine/phases/InitiativePhaseTest.java b/src/test/java/io/makana/mechwar/domain/game/phases/InitiativePhaseTest.java
+similarity index 96%
+rename from src/test/java/io/makana/mechwar/engine/phases/InitiativePhaseTest.java
+rename to src/test/java/io/makana/mechwar/domain/game/phases/InitiativePhaseTest.java
+index 2a7ca87..e1f782f 100644
+--- a/src/test/java/io/makana/mechwar/engine/phases/InitiativePhaseTest.java
++++ b/src/test/java/io/makana/mechwar/domain/game/phases/InitiativePhaseTest.java
+@@ -1,11 +1,11 @@
+-package io.makana.mechwar.engine.phases;
++package io.makana.mechwar.domain.game.phases;
+ 
+ import io.makana.mechwar.domain.events.InitiativePhaseResult;
+ import io.makana.mechwar.domain.game.GameId;
+ import io.makana.mechwar.domain.player.Player;
+ import io.makana.mechwar.domain.player.PlayerRepository;
+ import io.makana.mechwar.domain.player.Players;
+-import io.makana.mechwar.engine.Dice;
++import io.makana.mechwar.domain.game.Dice;
+ import org.junit.Test;
+ import org.junit.runner.RunWith;
+ import org.springframework.beans.factory.annotation.Autowired;
+@@ -15,7 +15,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
+ import org.springframework.context.annotation.Bean;
+ import org.springframework.test.context.junit4.SpringRunner;
+ 
+-import java.util.Arrays;
+ import java.util.HashMap;
+ import java.util.Map;
+ 
+diff --git a/src/test/resources/application.properties b/src/test/resources/application.properties
+new file mode 100644
+index 0000000..e07ddab
+--- /dev/null
++++ b/src/test/resources/application.properties
+@@ -0,0 +1 @@
++logging.level.root = info
+\ No newline at end of file
+diff --git a/src/test/resources/logback.xml b/src/test/resources/logback.xml
+new file mode 100644
+index 0000000..ca894df
+--- /dev/null
++++ b/src/test/resources/logback.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<configuration>
++    <include resource="org/springframework/boot/logging/logback/base.xml" />
++    <logger name="org.springframework" level="INFO"/>
++</configuration>
+\ No newline at end of file
