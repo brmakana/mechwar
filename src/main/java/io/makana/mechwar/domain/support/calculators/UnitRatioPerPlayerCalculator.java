@@ -1,7 +1,7 @@
 package io.makana.mechwar.domain.support.calculators;
 
 import io.makana.mechwar.domain.players.Player;
-import io.makana.mechwar.domain.units.GameUnitId;
+import io.makana.mechwar.domain.units.Unit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,17 +16,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UnitRatioPerPlayerCalculator {
 
-    public Map<Player, Integer> calculateUnitRatios(@NonNull Map<Player, List<GameUnitId>> unitsByPlayer) {
+    public Map<Player, Integer> calculateUnitRatios(@NonNull Map<Player, List<Unit>> unitsByPlayer) {
         if (unitsByPlayer.isEmpty()) {
             throw new IllegalArgumentException("Argument cannot be empty!");
         }
         Map<Player, Integer> unitCountsByPlayer = unitsByPlayer.entrySet().stream()
                 .collect(Collectors.toMap(
-                        e -> e.getKey(),
+                        Map.Entry::getKey,
                         e -> e.getValue().size()
         ));
         List<Integer> unitCounts = unitCountsByPlayer.values().stream().sorted().collect(Collectors.toList());
-        if (unitCounts.get(0) == 0) {
+        if (unitCounts.get(0) <= 0) {
             throw new IllegalArgumentException("Players cannot have zero units!");
         }
         int smallest = unitCounts.get(0);

@@ -7,17 +7,21 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-@AllArgsConstructor
+@Value
 public class BattleInput {
 
-    @Getter
-    private final List<Player> players;
     private final Map<Player, List<Unit>> unitsByPlayer;
     private final Map<Player, PlayerClient> playerClients;
+
+    public List<Player> getPlayers() {
+        return new ArrayList<>(playerClients.keySet());
+    }
 
     public List<Unit> getUnits(Player player) {
         return unitsByPlayer.get(player);

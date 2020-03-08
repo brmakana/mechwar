@@ -47,7 +47,7 @@ public class InitiativePhaseTest {
         final InitiativePhaseResult initiativePhaseResult = cut.rollInitiative(Arrays.asList(player1, player2));
         List<RollResult> results = initiativePhaseResult.getRollResults();
         assertEquals(2, results.size());
-        assertEquals(new RollResult(player2, 2), results.get(0));
-        assertEquals(new RollResult(player1, 1), results.get(1));
+        assertEquals(new RollResult(player1, 1), results.get(0));
+        assertEquals(new RollResult(player2, 2), results.get(1));
     }
 }

@@ -4,5 +4,5 @@ public interface GameUnitRepository {
 
 
 
-    Unit getGameUnitById(GameUnitId unitToMove);
+    Unit getGameUnitById(UnitId unitToMove);
 }

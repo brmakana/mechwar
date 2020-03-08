@@ -1,22 +1,19 @@
 package io.makana.mechwar.domain.units;
 
 import io.makana.mechwar.domain.entities.EntityId;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
+import lombok.*;
 
 /**
  * <code>{@link Unit}</code> models a single, concrete instance of a unit in the game.
  */
-@Data
-@AllArgsConstructor
-@Builder
+@EqualsAndHashCode
+@ToString
 public class Unit {
 
-    @NonNull
-    private GameUnitId gameUnitId;
+    @Getter
+    private final UnitId unitId;
 
-    @NonNull
-    private EntityId entityId;
+    public Unit() {
+        unitId = new UnitId();
+    }
 }

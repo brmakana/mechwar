@@ -2,7 +2,8 @@ package io.makana.mechwar.domain.support.calculators;
 
 import io.makana.mechwar.domain.players.Player;
 import io.makana.mechwar.domain.entities.Team;
-import io.makana.mechwar.domain.units.GameUnitId;
+import io.makana.mechwar.domain.units.Unit;
+import io.makana.mechwar.domain.units.UnitId;
 import lombok.Value;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +43,7 @@ public class UnitRatioPerPlayerCalculatorTest {
     @Test
     public void calculates_unit_ratios() {
         UnitRatioPerPlayerCalculator cut = new UnitRatioPerPlayerCalculator();
-        Map<Player, List<GameUnitId>> input = new HashMap<>();
+        Map<Player, List<Unit>> input = new HashMap<>();
         Player player1 = new Player("player 1", new Team("team 1"));
         input.put(player1, getGameUnitList(testParams.player1Count));
         Player player2 = new Player("player 2", new Team("team 2"));
@@ -59,26 +60,25 @@ public class UnitRatioPerPlayerCalculatorTest {
     @Test(expected = IllegalArgumentException.class)
     public void disallows_empty_argument() {
         UnitRatioPerPlayerCalculator cut = new UnitRatioPerPlayerCalculator();
-        Map<Player, List<GameUnitId>> input = new HashMap<>();
-
+        Map<Player, List<Unit>> input = new HashMap<>();
         cut.calculateUnitRatios(input);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void players_must_have_at_least_one_unit() {
         UnitRatioPerPlayerCalculator cut = new UnitRatioPerPlayerCalculator();
-        Map<Player, List<GameUnitId>> input = new HashMap<>();
+        Map<Player, List<Unit>> input = new HashMap<>();
         Player player1 = new Player("player 1", new Team("team 1"));
-        input.put(player1, getGameUnitList(0));
+        input.put(player1, new ArrayList<>());
         Player player2 = new Player("player 2", new Team("team 2"));
-        input.put(player2, getGameUnitList(0));
+        input.put(player2, new ArrayList<>());
         cut.calculateUnitRatios(input);
     }
 
-    private List<GameUnitId> getGameUnitList(int count) {
-        List<GameUnitId> units = new ArrayList<>();
+    private List<Unit> getGameUnitList(int count) {
+        List<Unit> units = new ArrayList<>();
         for (int x = 0; x < count; x++) {
-            units.add(new GameUnitId());
+            units.add(new Unit());
         }
         return units;
     }

@@ -5,11 +5,11 @@ import lombok.Value;
 import java.util.UUID;
 
 @Value
-public class GameUnitId {
+public class UnitId {
 
-    private UUID uuid;
+    private final UUID uuid;
 
-    public GameUnitId() {
+    public UnitId() {
         uuid = UUID.randomUUID();
     }
 
