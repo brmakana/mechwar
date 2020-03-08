@@ -10,6 +10,7 @@ import io.makana.mechwar.domain.support.calculators.UnitRatioPerPlayerCalculator
 import io.makana.mechwar.domain.units.Unit;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,7 +23,11 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class GroundMovementPhase {
 
+    @Autowired
     private final UnitRatioPerPlayerCalculator unitRatioPerPlayerCalculator;
+
+    @Autowired
+    private final List<MoveOrderRequestValidator> moveOrderRequestValidators;
 
     public GroundMovementPhaseResult moveUnits(final BattleContext battleContext) {
         log.info("Beginning ground movement phase");
@@ -34,33 +39,27 @@ public class GroundMovementPhase {
             for (Player player : battleContext.getPlayersInOrderOfInitiative()) {
                 log.debug("On {}", player);
                 if (unitsToMovePerPlayer.containsKey(player)) {
-                    final PlayerClient playerClient = battleContext.getPlayerClient(player);
-                    final List<Unit> unitsAllowedToMove = unitsToMovePerPlayer.get(player);
-                    final PlayerMovementRequest playerMovementRequest = new PlayerMovementRequest(
-                            unitsAllowedToMove,
-                            playerUnitCountRatios.get(player)
-                    );
-                    log.debug("Sending {} to {}", playerMovementRequest, player);
-                    final PlayerMovementResponse playerMovementResponse = playerClient.getMovementOrder(playerMovementRequest);
-                    log.info("Received {} movement response from {}", playerMovementResponse, player);
-                    final List<MoveOrderRequest> unitMoveOrders = playerMovementResponse.getMoveOrderRequests();
-                    /** @TODO validate movement orders **/
-                    if (playerMovementResponse == null || playerMovementResponse.getMoveOrderRequests() == null) {
-                        throw new IllegalArgumentException("Cannot have null/empty move order requests in response");
-                    }
-                    for (MoveOrderRequest moveOrderRequest : playerMovementResponse.getMoveOrderRequests()) {
-                        if (!moveOrderRequest.getPlayer().equals(player)) {
-                            throw new IllegalArgumentException("Invalid player for move order!");
+                    try {
+                        final PlayerClient playerClient = battleContext.getPlayerClient(player);
+                        final List<Unit> unitsAllowedToMove = unitsToMovePerPlayer.get(player);
+                        final PlayerMovementRequest playerMovementRequest = new PlayerMovementRequest(
+                                unitsAllowedToMove,
+                                playerUnitCountRatios.get(player)
+                        );
+                        log.debug("Sending {} to {}", playerMovementRequest, player);
+                        final PlayerMovementResponse playerMovementResponse = playerClient.getMovementOrder(playerMovementRequest);
+                        log.info("Received {} movement response from {}", playerMovementResponse, player);
+                        final List<MoveOrderRequest> unitMoveOrders = playerMovementResponse.getMoveOrderRequests();
+                        // validate movement orders
+                        validateMoveOrders(playerMovementRequest, unitMoveOrders);
+                        /** @TODO apply movement orders **/
+                        updateAvailableUnitsToMove(unitsToMovePerPlayer, player, unitsAllowedToMove, unitMoveOrders);
+                        /** @TODO update ratio **/
+                        if (!unitsToMovePerPlayer.isEmpty()) {
+                            playerUnitCountRatios = calculatePlayerUnitCountRatios(unitsToMovePerPlayer);
                         }
-                        if (!unitsAllowedToMove.contains(moveOrderRequest.getUnitToMove())) {
-                            throw new IllegalArgumentException("Invalid unit for move order!");
-                        }
-                    }
-                    /** @TODO apply movement orders **/
-                    updateAvailableUnitsToMove(unitsToMovePerPlayer, player, unitsAllowedToMove, unitMoveOrders);
-                    /** @TODO update ratio **/
-                    if (!unitsToMovePerPlayer.isEmpty()) {
-                        playerUnitCountRatios = calculatePlayerUnitCountRatios(unitsToMovePerPlayer);
+                    } catch (InvalidMoveOrder ex) {
+
                     }
                 } else {
                     log.debug("Player [{}] had no more available units to move, skipping", player);
@@ -73,6 +72,22 @@ public class GroundMovementPhase {
             }
         }
         return null; /** @TODO return results of ground movement **/
+    }
+
+    private void validateMoveOrders(final PlayerMovementRequest playerMovementRequest,
+                                    final List<MoveOrderRequest> unitMoveOrders) throws InvalidMoveOrder {
+        if (moveOrderRequestValidators != null) {
+            for (final MoveOrderRequestValidator validator : moveOrderRequestValidators) {
+                for (final MoveOrderRequest moveOrderRequest : unitMoveOrders) {
+                    try {
+                        validator.isValid(playerMovementRequest, moveOrderRequest);
+                    } catch (final InvalidMoveOrder ex) {
+                        log.warn("{} failed validation check {}", moveOrderRequest, validator.getDescription());
+                        throw ex;
+                    }
+                }
+            }
+        }
     }
 
     private void updateAvailableUnitsToMove(Map<Player, List<Unit>> unitsToMovePerPlayer,

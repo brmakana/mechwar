@@ -31,6 +31,8 @@ public class GroundMovementPhaseTest {
     private List<Player> players;
     private List<Unit> units;
 
+    private GroundMovementPhase cut;
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
@@ -45,6 +47,7 @@ public class GroundMovementPhaseTest {
         playerClientMap.put(players.get(1), playerClient);
 
         battleContext = new BattleContext(unitsByPlayer, players, playerClientMap);
+        cut = new GroundMovementPhase(new UnitRatioPerPlayerCalculator(), new ArrayList<>());
     }
 
     @Test
@@ -68,7 +71,7 @@ public class GroundMovementPhaseTest {
         when(playerClient.getMovementOrder(eq(player2Turn1MovementRequest)))
                 .thenReturn(new PlayerMovementResponse(Collections.singletonList(player2Turn1MoveOrderRequest)));
 
-        final GroundMovementPhase cut = new GroundMovementPhase(new UnitRatioPerPlayerCalculator());
+
         GroundMovementPhaseResult groundMovementPhaseResult = cut.moveUnits(this.battleContext);
     }
 

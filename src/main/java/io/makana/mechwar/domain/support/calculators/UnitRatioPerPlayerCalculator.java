@@ -4,6 +4,7 @@ import io.makana.mechwar.domain.players.Player;
 import io.makana.mechwar.domain.units.Unit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
  * has more or less units than another. For example, if Player 1 has 2 units and Player 2 has 1, Player 1 will have a ratio of 2:1
  */
 @Slf4j
+@Component
 public class UnitRatioPerPlayerCalculator {
 
     public Map<Player, Integer> calculateUnitRatios(@NonNull Map<Player, List<Unit>> unitsByPlayer) {
