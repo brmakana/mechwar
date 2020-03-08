@@ -1,4 +1,4 @@
-package io.makana.mechwar.domain.battle.phases;
+package io.makana.mechwar.domain.battle.phases.groundmovement;
 
 import io.makana.mechwar.domain.battle.BattleContext;
 import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

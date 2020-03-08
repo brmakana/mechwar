@@ -1,6 +1,6 @@
-package io.makana.mechwar.domain.events;
+package io.makana.mechwar.domain.battle.phases.initiative;
 
-import io.makana.mechwar.domain.battle.phases.InitiativePhaseResult;
+import io.makana.mechwar.domain.battle.phases.initiative.InitiativePhaseResult;
 import io.makana.mechwar.domain.entities.Team;
 import io.makana.mechwar.domain.players.Player;
 import io.makana.mechwar.domain.support.dicerolls.RollResult;

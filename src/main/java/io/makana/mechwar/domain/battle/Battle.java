@@ -1,8 +1,8 @@
 package io.makana.mechwar.domain.battle;
 
-import io.makana.mechwar.domain.battle.phases.GroundMovementPhase;
-import io.makana.mechwar.domain.battle.phases.InitiativePhase;
-import io.makana.mechwar.domain.battle.phases.InitiativePhaseResult;
+import io.makana.mechwar.domain.battle.phases.groundmovement.GroundMovementPhase;
+import io.makana.mechwar.domain.battle.phases.initiative.InitiativePhase;
+import io.makana.mechwar.domain.battle.phases.initiative.InitiativePhaseResult;
 import io.makana.mechwar.domain.players.Player;
 import io.makana.mechwar.domain.support.dicerolls.MaxRollsAttemptedException;
 import io.makana.mechwar.domain.support.dicerolls.RollResult;

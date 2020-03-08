@@ -1,9 +1,8 @@
-package io.makana.mechwar.domain.battle.phases;
+package io.makana.mechwar.domain.battle.phases.groundmovement;
 
-import io.makana.mechwar.domain.battle.Battle;
 import io.makana.mechwar.domain.battle.BattleContext;
-import io.makana.mechwar.domain.battle.BattleInput;
-import io.makana.mechwar.domain.battle.BattleResult;
+import io.makana.mechwar.domain.battle.phases.groundmovement.GroundMovementPhase;
+import io.makana.mechwar.domain.battle.phases.groundmovement.GroundMovementPhaseResult;
 import io.makana.mechwar.domain.entities.Team;
 import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
 import io.makana.mechwar.domain.players.Player;
@@ -11,7 +10,6 @@ import io.makana.mechwar.domain.players.PlayerClient;
 import io.makana.mechwar.domain.players.PlayerMovementRequest;
 import io.makana.mechwar.domain.players.PlayerMovementResponse;
 import io.makana.mechwar.domain.support.calculators.UnitRatioPerPlayerCalculator;
-import io.makana.mechwar.domain.support.dicerolls.MaxRollsAttemptedException;
 import io.makana.mechwar.domain.units.Unit;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +18,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
