@@ -6,7 +6,8 @@ import java.util.UUID;
 
 @Value
 public class EntityId {
-    private UUID uuid;
+
+    private final UUID uuid;
 
     public EntityId() {
         this.uuid = UUID.randomUUID();

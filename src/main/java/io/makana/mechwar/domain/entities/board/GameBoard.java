@@ -1,6 +1,6 @@
 package io.makana.mechwar.domain.entities.board;
 
-import io.makana.mechwar.domain.FourPointCompass;
+import io.makana.mechwar.domain.support.FourPointCompass;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
