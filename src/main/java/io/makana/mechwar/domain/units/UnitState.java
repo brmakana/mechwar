@@ -13,6 +13,7 @@ public class UnitState {
     @NonNull private final Unit unit;
     @NonNull private final HexFacing facing;
     @NonNull private final Hex location;
+    /** @TODO movement points remaining **/
     /** @TODO heat **/
     /** @TODO damage **/
     /** @TODO pilot/crew **/

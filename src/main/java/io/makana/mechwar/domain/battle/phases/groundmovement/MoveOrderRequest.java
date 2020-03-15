@@ -2,7 +2,6 @@ package io.makana.mechwar.domain.battle.phases.groundmovement;
 
 import io.makana.mechwar.domain.players.Player;
 import io.makana.mechwar.domain.units.Unit;
-import io.makana.mechwar.domain.units.capabilities.movement.MovementMode;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Singular;
