@@ -2,12 +2,13 @@ package io.makana.mechwar.domain.units.capabilities.movement;
 
 import io.makana.mechwar.domain.board.terrain.Terrain;
 
-public class StandStill implements MovementMode {
-    private static final StandStill instance = new StandStill();
+public class FacingChange implements MovementMode {
 
-    private StandStill() {}
+    private static final FacingChange instance = new FacingChange();
 
-    public static final StandStill getInstance() {
+    private FacingChange() {}
+
+    public static FacingChange getInstance() {
         return instance;
     }
 

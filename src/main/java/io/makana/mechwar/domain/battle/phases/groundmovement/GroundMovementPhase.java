@@ -1,14 +1,16 @@
 package io.makana.mechwar.domain.battle.phases.groundmovement;
 
 import io.makana.mechwar.domain.battle.BattleContext;
-import io.makana.mechwar.domain.events.movement.MoveOrderRequest;
+import io.makana.mechwar.domain.battle.phases.groundmovement.validators.MoveOrderRequestValidator;
 import io.makana.mechwar.domain.players.Player;
 import io.makana.mechwar.domain.players.PlayerClient;
 import io.makana.mechwar.domain.players.PlayerMovementRequest;
 import io.makana.mechwar.domain.players.PlayerMovementResponse;
 import io.makana.mechwar.domain.support.calculators.UnitRatioPerPlayerCalculator;
 import io.makana.mechwar.domain.units.Unit;
+import io.makana.mechwar.domain.units.UnitState;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,79 +28,86 @@ public class GroundMovementPhase {
     @Autowired
     private final UnitRatioPerPlayerCalculator unitRatioPerPlayerCalculator;
 
-    @Autowired
-    private final List<MoveOrderRequestValidator> moveOrderRequestValidators;
-
     public GroundMovementPhaseResult moveUnits(final BattleContext battleContext) {
         log.info("Beginning ground movement phase");
-        Map<Player, List<Unit>> unitsToMovePerPlayer = battleContext.getUnitsByPlayer();
-        Map<Player, Integer> playerUnitCountRatios = calculatePlayerUnitCountRatios(unitsToMovePerPlayer);
-        boolean isMovementComplete = unitsToMovePerPlayer.isEmpty();
+        final Map<Player, List<UnitState>> unitStatesByPlayer = battleContext.getUnitsByPlayer();
+        final Map<Player, List<Unit>> unitsToMoveByPlayer = unitStatesByPlayer.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> e.getValue().stream().map(UnitState::getUnit).collect(Collectors.toList())
+                ));
+        Map<Player, Integer> playerUnitCountRatios = calculatePlayerUnitCountRatios(unitsToMoveByPlayer);
+        boolean isMovementComplete = unitsToMoveByPlayer.isEmpty();
         while (!isMovementComplete) {
-            log.debug("Units to move: {}", unitsToMovePerPlayer);
+            log.debug("Units to move: {}", unitsToMoveByPlayer);
             for (Player player : battleContext.getPlayersInOrderOfInitiative()) {
                 log.debug("On {}", player);
-                if (unitsToMovePerPlayer.containsKey(player)) {
-                    try {
-                        final PlayerClient playerClient = battleContext.getPlayerClient(player);
-                        final List<Unit> unitsAllowedToMove = unitsToMovePerPlayer.get(player);
-                        final PlayerMovementRequest playerMovementRequest = new PlayerMovementRequest(
-                                unitsAllowedToMove,
-                                playerUnitCountRatios.get(player)
-                        );
-                        log.debug("Sending {} to {}", playerMovementRequest, player);
-                        final PlayerMovementResponse playerMovementResponse = playerClient.getMovementOrder(playerMovementRequest);
-                        log.info("Received {} movement response from {}", playerMovementResponse, player);
-                        final List<MoveOrderRequest> unitMoveOrders = playerMovementResponse.getMoveOrderRequests();
-                        // validate movement orders
-                        validateMoveOrders(playerMovementRequest, unitMoveOrders);
-                        /** @TODO apply movement orders **/
-                        updateAvailableUnitsToMove(unitsToMovePerPlayer, player, unitsAllowedToMove, unitMoveOrders);
-                        /** @TODO update ratio **/
-                        if (!unitsToMovePerPlayer.isEmpty()) {
-                            playerUnitCountRatios = calculatePlayerUnitCountRatios(unitsToMovePerPlayer);
-                        }
-                    } catch (InvalidMoveOrder ex) {
-
+                if (unitsToMoveByPlayer.containsKey(player)) {
+                    final PlayerClient playerClient = battleContext.getPlayerClient(player);
+                    final List<Unit> unitsAllowedToMove = unitsToMoveByPlayer.get(player);
+                    final PlayerMovementRequest playerMovementRequest = new PlayerMovementRequest(
+                            player,
+                            unitsAllowedToMove,
+                            playerUnitCountRatios.get(player)
+                    );
+                    log.debug("Sending {} to {}", playerMovementRequest, player);
+                    final PlayerMovementResponse playerMovementResponse = playerClient.getMovementOrder(playerMovementRequest);
+                    log.debug("Received {} movement response from {}", playerMovementResponse, player);
+                    if (!playerMovementResponse.getPlayer().equals(player)) {
+                        throw new IllegalArgumentException("Wrong player! Expected " +
+                                player +
+                                " but received " +
+                                playerMovementResponse.getPlayer());
+                    }
+                    final List<MoveOrderRequest> unitMoveOrders = playerMovementResponse.getMoveOrderRequests();
+                    // validate movement orders
+                    validateMoveOrders(playerMovementRequest, unitMoveOrders);
+                    /** @TODO apply movement orders **/
+                    updateAvailableUnitsToMove(unitsToMoveByPlayer, player, unitsAllowedToMove, unitMoveOrders);
+                    /** @TODO update ratio **/
+                    if (!unitsToMoveByPlayer.isEmpty()) {
+                        playerUnitCountRatios = calculatePlayerUnitCountRatios(unitsToMoveByPlayer);
                     }
                 } else {
                     log.debug("Player [{}] had no more available units to move, skipping", player);
                 }
             }
-            log.debug("Units to move per player size: {}", unitsToMovePerPlayer.size());
-            isMovementComplete = unitsToMovePerPlayer.isEmpty();
+            log.debug("Units to move per player size: {}", unitsToMoveByPlayer.size());
+            isMovementComplete = unitsToMoveByPlayer.isEmpty();
             if (isMovementComplete) {
-                log.info("All units have moved");
+                log.info("All available units have moved.");
             }
         }
-        return null; /** @TODO return results of ground movement **/
+        return new GroundMovementPhaseResult(); /** @TODO return results of ground movement **/
     }
 
-    private void validateMoveOrders(final PlayerMovementRequest playerMovementRequest,
-                                    final List<MoveOrderRequest> unitMoveOrders) throws InvalidMoveOrder {
-        if (moveOrderRequestValidators != null) {
-            for (final MoveOrderRequestValidator validator : moveOrderRequestValidators) {
-                for (final MoveOrderRequest moveOrderRequest : unitMoveOrders) {
-                    try {
-                        validator.isValid(playerMovementRequest, moveOrderRequest);
-                    } catch (final InvalidMoveOrder ex) {
-                        log.warn("{} failed validation check {}", moveOrderRequest, validator.getDescription());
-                        throw ex;
-                    }
-                }
-            }
+    private void validateMoveOrders(@NonNull final PlayerMovementRequest playerMovementRequest,
+                                    @NonNull final List<MoveOrderRequest> unitMoveOrders) throws InvalidMoveOrder {
+        if (unitMoveOrders.isEmpty()) {
+            throw new InvalidMoveOrder("Empty move order not allowed!");
+        }
+        for (final MoveOrderRequest moveOrderRequest : unitMoveOrders) {
+            MoveOrderRequestValidator.validate(playerMovementRequest, moveOrderRequest);
         }
     }
 
-    private void updateAvailableUnitsToMove(Map<Player, List<Unit>> unitsToMovePerPlayer,
-                                            Player player,
-                                            List<Unit> unitsAllowedToMove,
-                                            List<MoveOrderRequest> unitMoveOrders) {
-        List<Unit> unitsMoved = unitMoveOrders.stream()
+    /**
+     * Recalculate the available units left to move for each player
+     *
+     * @param unitsToMovePerPlayer players and their available to move units
+     * @param player               player who moved
+     * @param unitsAllowedToMove   the units that were available to move
+     * @param unitMoveOrders       the move orders
+     */
+    private void updateAvailableUnitsToMove(final Map<Player, List<Unit>> unitsToMovePerPlayer,
+                                            final Player player,
+                                            final List<Unit> unitsAllowedToMove,
+                                            final List<MoveOrderRequest> unitMoveOrders) {
+        final List<Unit> unitsMoved = unitMoveOrders.stream()
                 .map(MoveOrderRequest::getUnitToMove)
                 .collect(Collectors.toList());
         log.debug("These units moved and cannot move again this turn: {}", unitsMoved);
-        List<Unit> newUnitList = new ArrayList<>();
+        final List<Unit> newUnitList = new ArrayList<>();
         newUnitList.addAll(unitsAllowedToMove);
         newUnitList.removeAll(unitsMoved);
         if (newUnitList.isEmpty()) {
@@ -108,8 +117,8 @@ public class GroundMovementPhase {
         }
     }
 
-    private Map<Player, Integer> calculatePlayerUnitCountRatios(Map<Player, List<Unit>> unitsToMovePerPlayer) {
-        Map<Player, Integer> ratios = unitRatioPerPlayerCalculator.calculateUnitRatios(unitsToMovePerPlayer);
+    private Map<Player, Integer> calculatePlayerUnitCountRatios(Map<Player, List<Unit>> availableUnitsToMove) {
+        Map<Player, Integer> ratios = unitRatioPerPlayerCalculator.calculateUnitRatios(availableUnitsToMove);
         log.debug("New player/unit ratios calculated: {}", ratios);
         return ratios;
     }

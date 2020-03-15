@@ -2,12 +2,13 @@ package io.makana.mechwar.domain.units.capabilities.movement;
 
 import io.makana.mechwar.domain.board.terrain.Terrain;
 
-public class StandStill implements MovementMode {
-    private static final StandStill instance = new StandStill();
+public class Walk implements MovementMode {
 
-    private StandStill() {}
+    private static final Walk instance = new Walk();
 
-    public static final StandStill getInstance() {
+    private Walk() {}
+
+    public static Walk getInstance() {
         return instance;
     }
 

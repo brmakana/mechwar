@@ -1,6 +1,6 @@
 package io.makana.mechwar.domain.entities;
 
-import io.makana.mechwar.domain.units.capabilities.movement.MovementCapability;
+import io.makana.mechwar.domain.units.capabilities.movement.MovementMode;
 import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
@@ -12,13 +12,13 @@ public class Entity {
     private EntityId entityId;
 
     @Singular
-    private Set<MovementCapability> movementCapabilities;
+    private Set<MovementMode> movementCapabilities;
 
-    public boolean hasMovementCapability(@NonNull MovementCapability toCheck) {
+    public boolean hasMovementCapability(@NonNull MovementMode toCheck) {
         if (this.movementCapabilities == null || movementCapabilities.isEmpty()) {
             return false;
         }
-        for (MovementCapability capability : movementCapabilities) {
+        for (MovementMode capability : movementCapabilities) {
             if (capability.getClass().equals(toCheck.getClass())) {
                 return true;
             }

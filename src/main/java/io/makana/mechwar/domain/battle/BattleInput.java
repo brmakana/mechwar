@@ -3,8 +3,10 @@ package io.makana.mechwar.domain.battle;
 import io.makana.mechwar.domain.players.Player;
 import io.makana.mechwar.domain.players.PlayerClient;
 import io.makana.mechwar.domain.units.Unit;
+import io.makana.mechwar.domain.units.UnitState;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Value;
 
 import java.util.ArrayList;
@@ -16,14 +18,14 @@ import java.util.stream.Collectors;
 @Value
 public class BattleInput {
 
-    private final Map<Player, List<Unit>> unitsByPlayer;
-    private final Map<Player, PlayerClient> playerClients;
+    @NonNull private final Map<Player, List<UnitState>> unitsByPlayer;
+    @NonNull private final Map<Player, PlayerClient> playerClients;
 
     public List<Player> getPlayers() {
         return new ArrayList<>(playerClients.keySet());
     }
 
-    public List<Unit> getUnits(Player player) {
+    public List<UnitState> getUnits(Player player) {
         return unitsByPlayer.get(player);
     }
 

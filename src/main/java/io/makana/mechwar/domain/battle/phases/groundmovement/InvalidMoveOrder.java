@@ -1,6 +1,7 @@
 package io.makana.mechwar.domain.battle.phases.groundmovement;
 
-public class InvalidMoveOrder extends Exception {
+public class InvalidMoveOrder extends RuntimeException {
+
     public InvalidMoveOrder() {
         super();
     }

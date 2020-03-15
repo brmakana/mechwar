@@ -1,4 +1,4 @@
-package io.makana.mechwar.domain.entities.board.terrain;
+package io.makana.mechwar.domain.board.terrain;
 
 import java.util.Optional;
 
