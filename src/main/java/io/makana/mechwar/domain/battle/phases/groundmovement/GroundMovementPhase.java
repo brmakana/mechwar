@@ -28,22 +28,23 @@ public class GroundMovementPhase {
     @Autowired
     private final UnitRatioPerPlayerCalculator unitRatioPerPlayerCalculator;
 
-    public GroundMovementPhaseResult moveUnits(final BattleContext startingBattleContext) {
+    public GroundMovementPhaseResult moveUnits(@NonNull final BattleContext startingBattleContext) {
         log.info("Beginning ground movement phase");
         final Map<Player, List<UnitState>> unitStatesByPlayer = startingBattleContext.getUnitsByPlayer();
         final Map<Player, List<Unit>> unitsToMoveByPlayer = unitStatesByPlayer.entrySet().stream()
                 .collect(Collectors.toMap(
-                        e -> e.getKey(),
+                        Map.Entry::getKey,
                         e -> e.getValue().stream().map(UnitState::getUnit).collect(Collectors.toList())
                 ));
         Map<Player, Integer> playerUnitCountRatios = calculatePlayerUnitCountRatios(unitsToMoveByPlayer);
         boolean isMovementComplete = unitsToMoveByPlayer.isEmpty();
+        BattleContext currentContext = startingBattleContext;
         while (!isMovementComplete) {
             log.debug("Units to move: {}", unitsToMoveByPlayer);
-            for (Player player : startingBattleContext.getPlayersInOrderOfInitiative()) {
+            for (Player player : currentContext.getPlayersInOrderOfInitiative()) {
                 log.debug("On {}", player);
                 if (unitsToMoveByPlayer.containsKey(player)) {
-                    final PlayerClient playerClient = startingBattleContext.getPlayerClient(player);
+                    final PlayerClient playerClient = currentContext.getPlayerClient(player);
                     final List<Unit> unitsAllowedToMove = unitsToMoveByPlayer.get(player);
                     final PlayerMovementRequest playerMovementRequest = new PlayerMovementRequest(
                             player,
@@ -61,7 +62,7 @@ public class GroundMovementPhase {
                     }
                     final List<MoveOrderRequest> unitMoveOrders = playerMovementResponse.getMoveOrderRequests();
                     // validate movement orders
-                    validateMoveOrders(startingBattleContext, playerMovementRequest, unitMoveOrders);
+                    validateMoveOrders(currentContext, playerMovementRequest, unitMoveOrders);
                     /** @TODO apply movement orders **/
                     updateAvailableUnitsToMove(unitsToMoveByPlayer, player, unitsAllowedToMove, unitMoveOrders);
                     /** @TODO update ratio **/
@@ -79,7 +80,7 @@ public class GroundMovementPhase {
             }
         }
         /** @TODO return results of ground movement **/
-        return new GroundMovementPhaseResult(startingBattleContext, startingBattleContext);
+        return new GroundMovementPhaseResult(startingBattleContext, currentContext);
     }
 
     private void validateMoveOrders(@NonNull final BattleContext battleContext,
@@ -87,6 +88,10 @@ public class GroundMovementPhase {
                                     @NonNull final List<MoveOrderRequest> unitMoveOrders) throws InvalidMoveOrder {
         if (unitMoveOrders.isEmpty()) {
             throw new InvalidMoveOrder("Empty move order not allowed!");
+        }
+        if (unitMoveOrders.size() != playerMovementRequest.getRequiredToMoveCount()) {
+            throw new InvalidMoveOrder("Incorrect number of units moved - should be " +
+                    playerMovementRequest.getRequiredToMoveCount());
         }
         for (final MoveOrderRequest moveOrderRequest : unitMoveOrders) {
             MoveOrderRequestValidator.validate(battleContext, playerMovementRequest, moveOrderRequest);
